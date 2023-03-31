@@ -66,6 +66,8 @@ def get_data(sql_statement: str):
     """
 
     try:
+        print('Running')
+
         credentials = service_account.Credentials.from_service_account_info(json.loads(base64.b64decode(os.environ.get('CRED'))))
         df = pg.read_gbq(sql_statement, project_id="civic-athlete-325820", credentials=credentials)
 
@@ -81,6 +83,8 @@ def get_data(sql_statement: str):
             'UF': 'Estado',
             'natureza_juridica': 'Natureza Júridica',
         })
+
+        print('Query done')
        
         return df
     
