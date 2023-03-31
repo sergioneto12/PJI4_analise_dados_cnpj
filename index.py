@@ -21,6 +21,8 @@ import base64
 import logging
 import traceback
 
+from memory_profiler import profile
+
 from dotenv import load_dotenv
 
 # environment variables loading
@@ -55,44 +57,46 @@ sql_no_com = """
     order by 1 desc
 """
 
-# def get_data(sql_statement: str):
-#     """
-#     This functions makes requistion of data to feed the dashboard.
+@profile
+def get_data():
+    """
+    This functions makes requistion of data to feed the dashboard.
 
-#     - Parameters:
-#     (String) The entrance is done by a single sql statement, that can be used at the dashboard by any analysis necessary.
+    - Parameters:
+    (String) The entrance is done by a single sql statement, that can be used at the dashboard by any analysis necessary.
 
-#     For any 
-#     """
+    For any 
+    """
 
-try:
-    print('Running')
+    try:
+        print('Running')
 
-    credentials = service_account.Credentials.from_service_account_info(json.loads(base64.b64decode(os.environ.get('CRED'))))
-    df = pg.read_gbq(sql_no_com, project_id="civic-athlete-325820", credentials=credentials)
+        credentials = service_account.Credentials.from_service_account_info(json.loads(base64.b64decode(os.environ.get('CRED'))))
+        df = pg.read_gbq(sql_no_com, project_id="civic-athlete-325820", credentials=credentials)
 
-    df = df.rename(columns={
-        'dt_inicio_ativ': 'Data De Início da Atividade', 
-        'dt_sit_cadastral': 'Data Da Ult. Situação Cadastral', 
-        'CNPJs': 'CNPJ Básico',
-        'capital_social': 'Capital Total',
-        'med_capital_social': 'Média do Capital Registrado',
-        'sit_cadastral': 'Situação Cadastral',
-        'month': 'Mês', 
-        'year': 'Ano',
-        'UF': 'Estado',
-        'natureza_juridica': 'Natureza Júridica',
-    })
+        df = df.rename(columns={
+            'dt_inicio_ativ': 'Data De Início da Atividade', 
+            'dt_sit_cadastral': 'Data Da Ult. Situação Cadastral', 
+            'CNPJs': 'CNPJ Básico',
+            'capital_social': 'Capital Total',
+            'med_capital_social': 'Média do Capital Registrado',
+            'sit_cadastral': 'Situação Cadastral',
+            'month': 'Mês', 
+            'year': 'Ano',
+            'UF': 'Estado',
+            'natureza_juridica': 'Natureza Júridica',
+        })
 
-    print('Query done')
-    
-    # return df
+        print('Query done')
+        
+        return df
 
-except Exception as e:
-    print(e)
-    print(traceback.format_exc())
+    except Exception as e:
+        print(e)
+        print(traceback.format_exc())
 
 
+# @profile
 # def application():
 #     """
 #     This application initializes the main dashboard page
@@ -105,182 +109,182 @@ except Exception as e:
 #     Charts can be manipulated before app.layout to keep a code pattern inside the app structure
 #     """
 
-# Generating our dataframe
-# df_main = get_data(sql_no_com)
-df_main = df
+    # Generating our dataframe
+    # df_main = get_data(sql_no_com)
+    df_main = df
 
-# Both variables are set up to be stored at the charts created below in figure variables.
-v_2023 = df_main['CNPJ Básico'].loc[pd.to_datetime(df_main['Data De Início da Atividade']).dt.year < 2020].sum()
-v_2022 = df_main['CNPJ Básico'].loc[(pd.to_datetime(df_main['Data De Início da Atividade']).dt.year > 2019) & (pd.to_datetime(df_main['Data De Início da Atividade']).dt.year < 2022)].sum()
+    # Both variables are set up to be stored at the charts created below in figure variables.
+    v_2023 = df_main['CNPJ Básico'].loc[pd.to_datetime(df_main['Data De Início da Atividade']).dt.year < 2020].sum()
+    v_2022 = df_main['CNPJ Básico'].loc[(pd.to_datetime(df_main['Data De Início da Atividade']).dt.year > 2019) & (pd.to_datetime(df_main['Data De Início da Atividade']).dt.year < 2022)].sum()
 
-df_nat = df_main.groupby(['Natureza Júridica']).sum(['CNPJ Básico']).sort_values(by='CNPJ Básico', ascending=False).head(5)
-# print(df_nat.index)
+    df_nat = df_main.groupby(['Natureza Júridica']).sum(['CNPJ Básico']).sort_values(by='CNPJ Básico', ascending=False).head(5)
+    # print(df_nat.index)
 
-# First KPI view
-fig1 = go.Figure(
-        go.Indicator(
-            mode = "number",
-            value = v_2023,
-            number = {'prefix': "#"},
-            domain = {'x': [0, 1], 'y': [0, 1]},
-        )   
-    )
-
-# Second KPI view
-fig2 = go.Figure(
-        go.Indicator(
-            mode = "number",
-            value = v_2022,
-            number = {'prefix': "#"},
-            domain = {'x': [0, 1], 'y': [0, 1]},   
+    # First KPI view
+    fig1 = go.Figure(
+            go.Indicator(
+                mode = "number",
+                value = v_2023,
+                number = {'prefix': "#"},
+                domain = {'x': [0, 1], 'y': [0, 1]},
+            )   
         )
-    )
 
-# layout of KPIs background
-fig1.update_layout(paper_bgcolor = "LightSteelBlue", width=400, height=250)
-fig2.update_layout(paper_bgcolor = "LightSteelBlue", width=400, height=250)
+    # Second KPI view
+    fig2 = go.Figure(
+            go.Indicator(
+                mode = "number",
+                value = v_2022,
+                number = {'prefix': "#"},
+                domain = {'x': [0, 1], 'y': [0, 1]},   
+            )
+        )
 
-# This variable starts the application design, mainly using HTML keywords
-app.layout = html.Div([
+    # layout of KPIs background
+    fig1.update_layout(paper_bgcolor = "LightSteelBlue", width=400, height=250)
+    fig2.update_layout(paper_bgcolor = "LightSteelBlue", width=400, height=250)
 
-    # Top chart (bar chart) set up
-    html.Div([
-        html.Div(
-            children='Dados Abertos: Cadastro de Empresas no Brasil: 2018 - 2023', 
-            style={
-                'font-family': 'Roboto', 
-                'font-size': 40, 
-                'textAlign': 'center', 
-                'align-items': 'center', 
-                'justify-content': 'center', 
-                'font-weight': 'bold', 
-                'display': 'flex', 
-                'flex-direction': 'row'
-                }
-            ),
-        html.Hr(),
-        html.Div(
-            [
-                html.Div([
-                    dcc.Graph(
-                        figure=px.histogram(df_main, x='Ano', y='CNPJ Básico', histfunc='sum').update_layout(paper_bgcolor = "LightSteelBlue", width=600, height=400), 
-                        id='my-hist-1'
-                        ),
-                ], 
-                style={'margin': 15}
+    # This variable starts the application design, mainly using HTML keywords
+    app.layout = html.Div([
+
+        # Top chart (bar chart) set up
+        html.Div([
+            html.Div(
+                children='Dados Abertos: Cadastro de Empresas no Brasil: 2018 - 2023', 
+                style={
+                    'font-family': 'Roboto', 
+                    'font-size': 40, 
+                    'textAlign': 'center', 
+                    'align-items': 'center', 
+                    'justify-content': 'center', 
+                    'font-weight': 'bold', 
+                    'display': 'flex', 
+                    'flex-direction': 'row'
+                    }
                 ),
-                html.Div([
-                    dcc.Graph(figure=px.bar(df_nat, y=df_nat.index, x='CNPJ Básico', orientation='h', text='CNPJ Básico').update_layout(paper_bgcolor = "LightSteelBlue", width=600, height=400), id='my-bar-2'),       
-                ], 
-                style={'margin': 15}
-                )
-        ], 
-        style={
-            'padding': 5, 
-            'margin': 15, 
-            'text-align': 'center', 
-            'align-items': 'center', 
-            'justify-content': 'center', 
-            'font-weight': 'bold', 
-            'display': 'flex', 
-            'flex-direction': 'row'
-        }
-        ),
-        # dcc.RadioItems(options=['pop', 'lifeExp', 'gdpPercap'], value='lifeExp', id='my-radio-item'),
-    ], 
-    style={
-        'margin': 15, 
-        'textAlign': 'center', 
-        'align-items': 'center', 
-        'justify-content': 'center','margin-bottom': 50
-        }
-    ),
-
-    html.Div([
-        # KPIs set up
-        html.Div([    
-            html.Div(children='Número de empresas criadas entre 2018 e 2019'),
-            html.Hr(),
-            html.Div([
-                dcc.Graph(figure=fig1, id='my-graph-2')], style={'display': 'flex', 'align-items': 'center', 'justify-content': 'center', 'font-weight': 'bold'})
-        ], 
-        style={
-            'margin': 20, 
-            'font-family': 'Roboto', 
-            'font-size': 25, 
-            'font-weight': 'bold', 
-            'align-items': 'center', 
-            'text-align': 'center'
-            }
-        ),
-
-        html.Div([    
-            html.Div(children='Número de empresas criadas entre 2020 e 2021'),
             html.Hr(),
             html.Div(
                 [
-                    dcc.Graph(figure=fig2, id='my-graph-3')
-                ], 
-                style={
-                    'display': 'flex', 
-                    'align-items': 'center', 
-                    'justify-content': 'center', 
-                    'font-weight': 'bold'
-                    }
-                )
-        ], 
-        style={
-            'margin': 20, 
-            'font-family': 'Roboto', 
-            'font-size': 25, 
-            'font-weight': 'bold', 
-            'align-items': 'center', 
-            'text-align': 'center'
-            }
-        ),
-
-    ], 
-    style={
-        'margin': 20, 
-        'display': 'flex', 
-        'flex-direction': 'row', 
-        'justify-content': 'center'
-        }
-    ),
-
-    html.Div([
-        html.Div(
-            children='Tabela Geral de Dados', 
+                    html.Div([
+                        dcc.Graph(
+                            figure=px.histogram(df_main, x='Ano', y='CNPJ Básico', histfunc='sum').update_layout(paper_bgcolor = "LightSteelBlue", width=600, height=400), 
+                            id='my-hist-1'
+                            ),
+                    ], 
+                    style={'margin': 15}
+                    ),
+                    html.Div([
+                        dcc.Graph(figure=px.bar(df_nat, y=df_nat.index, x='CNPJ Básico', orientation='h', text='CNPJ Básico').update_layout(paper_bgcolor = "LightSteelBlue", width=600, height=400), id='my-bar-2'),       
+                    ], 
+                    style={'margin': 15}
+                    )
+            ], 
             style={
-                'font-family': 'Roboto', 
-                'font-size': 40, 
-                'textAlign': 'center', 
+                'padding': 5, 
+                'margin': 15, 
+                'text-align': 'center', 
                 'align-items': 'center', 
                 'justify-content': 'center', 
                 'font-weight': 'bold', 
                 'display': 'flex', 
                 'flex-direction': 'row'
+            }
+            ),
+            # dcc.RadioItems(options=['pop', 'lifeExp', 'gdpPercap'], value='lifeExp', id='my-radio-item'),
+        ], 
+        style={
+            'margin': 15, 
+            'textAlign': 'center', 
+            'align-items': 'center', 
+            'justify-content': 'center','margin-bottom': 50
+            }
+        ),
+
+        html.Div([
+            # KPIs set up
+            html.Div([    
+                html.Div(children='Número de empresas criadas entre 2018 e 2019'),
+                html.Hr(),
+                html.Div([
+                    dcc.Graph(figure=fig1, id='my-graph-2')], style={'display': 'flex', 'align-items': 'center', 'justify-content': 'center', 'font-weight': 'bold'})
+            ], 
+            style={
+                'margin': 20, 
+                'font-family': 'Roboto', 
+                'font-size': 25, 
+                'font-weight': 'bold', 
+                'align-items': 'center', 
+                'text-align': 'center'
                 }
             ),
-        html.Hr(),
-        dash_table.DataTable(data=df_main.to_dict('records'), page_size=10),
-    ], 
-    style={
-        'margin': 15, 
-        'textAlign': 'center', 
-        'align-items': 'center', 
-        'justify-content': 'center', 
-        'margin': 30, 
-        'margin-bottom': 50
-        }
-    ),
-    
-])
 
-# # Return the app run server, starting automatically the application as the function is triggered
-# return
-#  
-app.run_server(debug=False, host="0.0.0.0", port=8080)
+            html.Div([    
+                html.Div(children='Número de empresas criadas entre 2020 e 2021'),
+                html.Hr(),
+                html.Div(
+                    [
+                        dcc.Graph(figure=fig2, id='my-graph-3')
+                    ], 
+                    style={
+                        'display': 'flex', 
+                        'align-items': 'center', 
+                        'justify-content': 'center', 
+                        'font-weight': 'bold'
+                        }
+                    )
+            ], 
+            style={
+                'margin': 20, 
+                'font-family': 'Roboto', 
+                'font-size': 25, 
+                'font-weight': 'bold', 
+                'align-items': 'center', 
+                'text-align': 'center'
+                }
+            ),
 
-# if __name__ == '__main__':
-#     application()
+        ], 
+        style={
+            'margin': 20, 
+            'display': 'flex', 
+            'flex-direction': 'row', 
+            'justify-content': 'center'
+            }
+        ),
+
+        html.Div([
+            html.Div(
+                children='Tabela Geral de Dados', 
+                style={
+                    'font-family': 'Roboto', 
+                    'font-size': 40, 
+                    'textAlign': 'center', 
+                    'align-items': 'center', 
+                    'justify-content': 'center', 
+                    'font-weight': 'bold', 
+                    'display': 'flex', 
+                    'flex-direction': 'row'
+                    }
+                ),
+            html.Hr(),
+            dash_table.DataTable(data=df_main.to_dict('records'), page_size=10),
+        ], 
+        style={
+            'margin': 15, 
+            'textAlign': 'center', 
+            'align-items': 'center', 
+            'justify-content': 'center', 
+            'margin': 30, 
+            'margin-bottom': 50
+            }
+        ),
+        
+    ])
+
+    # Return the app run server, starting automatically the application as the function is triggered
+    return app.run_server(debug=False, host="0.0.0.0", port=8080)
+# app.run_server(debug=True)
+
+if __name__ == '__main__':
+    # application()
+    get_data()
