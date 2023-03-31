@@ -21,7 +21,7 @@ import base64
 import logging
 import traceback
 
-from memory_profiler import profile
+# from memory_profiler import profile
 
 from dotenv import load_dotenv
 
@@ -57,7 +57,7 @@ sql_no_com = """
     order by 1 desc
 """
 
-@profile
+# @profile
 def get_data():
     """
     This functions makes requistion of data to feed the dashboard.
