@@ -11,7 +11,7 @@ import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
 
-from dash import Dash, html, dcc, dash_table
+from dash import Dash, html, dcc, dash_table, Input, Output
 from dash import html
 
 from google.oauth2 import service_account
@@ -81,7 +81,7 @@ def get_data():
             'month': 'Mês', 
             'year': 'Ano',
             'UF': 'Estado',
-            'natureza_juridica': 'Natureza Júridica',
+            'natureza_juridica': 'Natureza Juridica',
         })
 
         print('Query done')
@@ -108,10 +108,10 @@ def application():
     df_main = get_data()
 
     # Both variables are set up to be stored at the charts created below in figure variables.
-    v_2023 = df_main['CNPJs'].loc[pd.to_datetime(df_main['Data De Início da Atividade']).dt.year < 2020].sum()
-    v_2022 = df_main['CNPJs'].loc[(pd.to_datetime(df_main['Data De Início da Atividade']).dt.year > 2019) & (pd.to_datetime(df_main['Data De Início da Atividade']).dt.year < 2022)].sum()
+    v_2023 = df_main['CNPJs'].loc[pd.to_datetime(df_main['Data De Início da Atividade']).dt.year < 2020].count()
+    v_2022 = df_main['CNPJs'].loc[(pd.to_datetime(df_main['Data De Início da Atividade']).dt.year > 2019) & (pd.to_datetime(df_main['Data De Início da Atividade']).dt.year < 2022)].count()
 
-    df_nat = df_main.groupby(['Natureza Júridica']).sum(['CNPJs']).sort_values(by='CNPJs', ascending=False).head(5)
+    df_nat = df_main.groupby(['Natureza Juridica']).sum(['CNPJs']).sort_values(by='CNPJs', ascending=False).head(5)
     # print(df_nat.index)
 
     # First KPI view
@@ -161,30 +161,24 @@ def application():
                 [
                     html.Div([
                         dcc.Graph(
-                            figure=px.histogram(df_main, x='Ano', y='CNPJs', histfunc='sum').update_layout(paper_bgcolor = "LightSteelBlue", width=600, height=400), 
-                            id='my-hist-1'
-                            ),
-                    ], 
-                    style={'margin': 15}
-                    ),
+                            figure=px.histogram(df_main, x='Ano', y='CNPJs', histfunc='count', text_auto=True).update_layout(paper_bgcolor = "LightSteelBlue", width=600, height=400, yaxis_title='Nº de Empresas')),
+                    ], style={'margin': 15}),
                     html.Div([
                         dcc.Graph(figure=px.bar(df_nat, y=df_nat.index, x='CNPJs', orientation='h', text='CNPJs').update_layout(paper_bgcolor = "LightSteelBlue", width=600, height=400), id='my-bar-2'),       
-                    ], 
-                    style={'margin': 15}
+                    ], style={'margin': 15}
                     )
-            ], 
-            style={
-                'padding': 5, 
-                'margin': 15, 
-                'text-align': 'center', 
-                'align-items': 'center', 
-                'justify-content': 'center', 
-                'font-weight': 'bold', 
-                'display': 'flex', 
-                'flex-direction': 'row'
-            }
+                ], 
+                style={
+                    'padding': 0, 
+                    'margin': 15, 
+                    'text-align': 'center', 
+                    'align-items': 'center', 
+                    'justify-content': 'center', 
+                    'font-weight': 'bold', 
+                    'display': 'flex', 
+                    'flex-direction': 'row'
+                }
             ),
-            # dcc.RadioItems(options=['pop', 'lifeExp', 'gdpPercap'], value='lifeExp', id='my-radio-item'),
         ], 
         style={
             'margin': 15, 
@@ -268,12 +262,10 @@ def application():
             'textAlign': 'center', 
             'align-items': 'center', 
             'justify-content': 'center', 
-            'margin': 30, 
-            'margin-bottom': 50
+            'margin': 30
             }
-        ),
-        
-    ])
+        ),        
+    ], style={'background': '#e8f0fa'})
 
     # Return the app run server, starting automatically the application as the function is triggered
     return app.run_server(debug=True) #app.run_server(debug=False, host="0.0.0.0", port=8080)
