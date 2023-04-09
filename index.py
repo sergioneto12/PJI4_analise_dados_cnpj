@@ -5,23 +5,20 @@ Created By: PJI04 - Turma 001
 Revised by: Sergio Neto, Anderson Santiago.
 """
 
-import pandas_gbq as pg
-import pandas as pd
-import numpy as np
-import plotly.express as px
-import plotly.graph_objects as go
-
-from dash import Dash, html, dcc, dash_table, Input, Output
-from dash import html
-
-from google.oauth2 import service_account
-import json
-import os
 import base64
+import json
 import logging
+import os
 import traceback
 
+import numpy as np
+import pandas as pd
+import pandas_gbq as pg
+import plotly.express as px
+import plotly.graph_objects as go
+from dash import Dash, Input, Output, dash_table, dcc, html
 from dotenv import load_dotenv
+from google.oauth2 import service_account
 
 # environment variables loading
 load_dotenv()
