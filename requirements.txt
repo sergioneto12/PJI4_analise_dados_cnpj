@@ -16,12 +16,12 @@ google-crc32c==1.5.0
 google-pasta==0.2.0
 google-resumable-media==2.4.1
 googleapis-common-protos==1.59.0
-graphviz==0.17
-grpcio==1.53.0
+# graphviz==0.17
+# grpcio==1.53.0
 numpy==1.19.5
 pandas==1.2.2
 pandas-gbq==0.19.1
 plotly==5.13.1
 python-dotenv==1.0.0
-scikit-learn==1.2.2
-xgboost==1.7.5
+gunicorn
+
