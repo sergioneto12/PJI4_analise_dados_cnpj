@@ -30,7 +30,7 @@ logger.setLevel(logging.DEBUG)
 
 # starting app
 app = Dash(__name__)
-server = app.server()
+# server = app.server()
 
 sql_no_com = """
     select 
