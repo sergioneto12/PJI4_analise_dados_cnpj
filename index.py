@@ -32,7 +32,7 @@ logger.setLevel(logging.DEBUG)
 app = Dash(__name__)
 # server = app.server()
 
-sql_no_com = """
+sql_no_com = f"""
     select 
         date(dt_inicio_ativ) as dt_inicio_ativ, 
         date(dt_sit_cadastral) as dt_sit_cadastral, 
@@ -45,7 +45,7 @@ sql_no_com = """
         UF,
         natureza_juridica,
         
-    from `civic-athlete-325820.pji4.dataset_analysis`
+    from `{os.environ.get('TABLE')}`
 
     where extract(year from dt_inicio_ativ) between 2018 and 2023
 
@@ -67,7 +67,7 @@ def get_data():
         print('Running')
 
         credentials = service_account.Credentials.from_service_account_info(json.loads(base64.b64decode(os.environ.get('CRED'))))
-        df = pg.read_gbq(sql_no_com, project_id="civic-athlete-325820", credentials=credentials)
+        df = pg.read_gbq(sql_no_com, project_id=os.environ.get('PROJ_ID'), credentials=credentials)
 
         df = df.rename(columns={
             'dt_inicio_ativ': 'Data De Início da Atividade', 
